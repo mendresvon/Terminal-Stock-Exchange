@@ -9,13 +9,14 @@
 - [中文說明](#中文說明)
 - [English Documentation](#english-documentation)
 
-### 📐 圖表 / Diagrams
+### 📐 圖表與文件 / Diagrams & Documents
 
 | 檔案 / File | 內容 / Content |
 |------------|---------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 系統架構圖 / System Architecture Diagram |
 | [CLASS_DIAGRAM.md](CLASS_DIAGRAM.md) | 類別關係圖 / UML Class Diagram |
 | [DATA_FLOW.md](DATA_FLOW.md) | 資料流程圖 / Data Flow & Sequence Diagrams |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | 開發規格說明與迭代流程 / Specification & Iteration History |
 
 ---
 
@@ -104,6 +105,7 @@ Terminal-Stock-Exchange/
 ├── ARCHITECTURE.md             # 系統架構圖 (Mermaid)
 ├── CLASS_DIAGRAM.md            # UML 類別關係圖 (Mermaid)
 ├── DATA_FLOW.md                # 資料流程圖 (Mermaid)
+├── DEVELOPMENT.md              # 開發規格說明與迭代流程
 ├── data/                       # 執行時自動產生 (gitignored)
 │   ├── market_data.txt         # 資產登錄 + 30日價格歷史
 │   ├── accounts.txt            # 所有帳戶資料
@@ -283,6 +285,7 @@ Terminal-Stock-Exchange/
 ├── ARCHITECTURE.md             # System architecture diagram (Mermaid)
 ├── CLASS_DIAGRAM.md            # UML class relationship diagram (Mermaid)
 ├── DATA_FLOW.md                # Data flow & sequence diagrams (Mermaid)
+├── DEVELOPMENT.md              # Specification & iteration history
 ├── data/                       # Auto-generated at runtime (gitignored)
 │   ├── market_data.txt         # Asset registry + 30-day price history
 │   ├── accounts.txt            # All account data (pipe-delimited)
