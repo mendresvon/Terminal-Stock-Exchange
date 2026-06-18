@@ -9,6 +9,14 @@
 - [中文說明](#中文說明)
 - [English Documentation](#english-documentation)
 
+### 📐 圖表 / Diagrams
+
+| 檔案 / File | 內容 / Content |
+|------------|---------------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | 系統架構圖 / System Architecture Diagram |
+| [CLASS_DIAGRAM.md](CLASS_DIAGRAM.md) | 類別關係圖 / UML Class Diagram |
+| [DATA_FLOW.md](DATA_FLOW.md) | 資料流程圖 / Data Flow & Sequence Diagrams |
+
 ---
 
 # 中文說明
@@ -64,295 +72,26 @@ rm -rf data/
 
 ## 系統架構圖
 
-```mermaid
-graph TD
-    subgraph Entry["🚀 程式進入點"]
-        MAIN["main.cpp<br/>─────────────<br/>啟動 / 載入 / 種子資料"]
-    end
+> 📄 完整架構圖請見獨立檔案：**[ARCHITECTURE.md](ARCHITECTURE.md)**
 
-    subgraph Engine["⚙️ 核心引擎層"]
-        ME["MarketEngine<br/>─────────────<br/>資產登錄表<br/>帳戶登錄表<br/>隨機漫步引擎<br/>新聞事件系統<br/>save() / load()"]
-    end
-
-    subgraph Assets["📈 資產模組 (OOP 繼承)"]
-        FA["&lt;&lt;abstract&gt;&gt;<br/>FinancialAsset<br/>─────────────<br/>symbol / name / price<br/>priceHistory (deque&lt;30&gt;)<br/>calculateVolatility() = 0<br/>getTradingFee() = 0"]
-        ST["Stock<br/>─────────────<br/>vol = ±2%/日<br/>fee = 0.1%"]
-        CR["Crypto<br/>─────────────<br/>vol = ±7%/日<br/>fee = 0.5%"]
-        ET["ETF<br/>─────────────<br/>vol = ±0.8%/日<br/>fee = 0.03%<br/>basketSymbols[]"]
-        FA -->|繼承| ST
-        FA -->|繼承| CR
-        FA -->|繼承| ET
-    end
-
-    subgraph Accounts["👤 帳戶模組 (OOP 繼承)"]
-        AC["&lt;&lt;abstract&gt;&gt;<br/>Account<br/>─────────────<br/>username / passwordHash<br/>cashBalance<br/>portfolio (map)<br/>tradeHistory (vector)<br/>avgCostBasis (map)<br/>authenticate() = 0"]
-        PT["PlayerTrader<br/>─────────────<br/>buy() / sell()<br/>加權平均成本計算<br/>初始資金 $10,000"]
-        AA["AdminAccount<br/>─────────────<br/>addAsset()<br/>removeAsset()<br/>resetSimulation()"]
-        AC -->|繼承| PT
-        AC -->|繼承| AA
-    end
-
-    subgraph IO["💾 持久化層"]
-        FM["FileManager (static)<br/>─────────────<br/>saveMarket() / loadMarket()<br/>saveAccounts() / loadAccounts()<br/>appendTradeLog()"]
-        D1["data/market_data.txt<br/>資產登錄 + 30日歷史"]
-        D2["data/accounts.txt<br/>所有帳戶資料"]
-        D3["data/trade_logs.txt<br/>交易日誌 (只增不改)"]
-        FM --> D1
-        FM --> D2
-        FM --> D3
-    end
-
-    subgraph UI["🖥️ 使用者介面層"]
-        TN["Terminal (namespace)<br/>─────────────<br/>ANSI 顏色常數<br/>printHeader / printTable<br/>printChart / printSparkline<br/>printSuccess/Error/Warning"]
-        MN["Menu<br/>─────────────<br/>showMarket()<br/>showPortfolio()<br/>showTradeMenu()<br/>showAdminPanel()<br/>nextTradingDay()"]
-    end
-
-    subgraph Types["🔧 共用型別"]
-        TY["Types.hpp<br/>─────────────<br/>enum AssetType<br/>struct TransactionRecord<br/>nowIso8601()"]
-    end
-
-    MAIN --> ME
-    MAIN --> MN
-    ME -->|管理| Assets
-    ME -->|管理| Accounts
-    ME -->|委派| FM
-    MN -->|呼叫| ME
-    MN -->|渲染| TN
-    FM -->|重建| Accounts
-    FM -->|重建| Assets
-    TY -.->|使用| Assets
-    TY -.->|使用| Accounts
-    TY -.->|使用| FM
-```
+該圖展示五個架構層（進入點 → 核心引擎 → 資產/帳戶模組 → 持久化層 → UI 層）之間的依賴關係與資料流向。
 
 ---
 
 ## 類別關係圖 (Class Diagram)
 
-```mermaid
-classDiagram
-    class FinancialAsset {
-        <<abstract>>
-        #string symbol
-        #string name
-        #double currentPrice
-        #deque~double~ priceHistory
-        #AssetType assetType
-        #MAX_HISTORY = 30
-        +calculateVolatility()* double
-        +getTradingFee()* double
-        +updatePrice(double)
-        +display()
-        +getSymbol() string
-        +getCurrentPrice() double
-        +getPriceHistory() deque
-    }
+> 📄 完整類別圖請見獨立檔案：**[CLASS_DIAGRAM.md](CLASS_DIAGRAM.md)**
 
-    class Stock {
-        -double volatilityFactor
-        -double dividendYield
-        +calculateVolatility() double
-        +getTradingFee() double
-        +getDividendYield() double
-    }
+該圖展示所有 10 個類別的成員、方法，以及繼承（`<|--`）、聚合（`o--`）、組合（`*--`）、依賴（`..>`）等關係。
 
-    class Crypto {
-        -double volatilityFactor
-        -double tradingFeeRate
-        -bool tradesAroundClock
-        +calculateVolatility() double
-        +getTradingFee() double
-        +isAroundClock() bool
-    }
-
-    class ETF {
-        -double volatilityFactor
-        -vector~string~ basketSymbols
-        +calculateVolatility() double
-        +getTradingFee() double
-        +getBasketSymbols() vector
-    }
-
-    class Account {
-        <<abstract>>
-        #string username
-        #string passwordHash
-        #double cashBalance
-        #unordered_map portfolio
-        #vector~TransactionRecord~ tradeHistory
-        #unordered_map avgCostBasis
-        +authenticate(string)* bool
-        +getAccountType()* string
-        +getCashBalance() double
-        +modifyCash(double)
-        +setPortfolio(map)
-        +addTradeRecord(TransactionRecord)
-        +setAvgCostBasis(map)
-        +setPasswordHashDirect(string)
-    }
-
-    class PlayerTrader {
-        +PlayerTrader(string, string, double)
-        +authenticate(string) bool
-        +getAccountType() string
-        +buy(string, int, double, double) bool
-        +sell(string, int, double, double) bool
-    }
-
-    class AdminAccount {
-        +AdminAccount(string, string)
-        +authenticate(string) bool
-        +getAccountType() string
-        +addAsset(shared_ptr)
-        +removeAsset(string)
-        +resetSimulation()
-    }
-
-    class MarketEngine {
-        -unordered_map~string,FinancialAsset~ assets
-        -vector~Account~ accounts
-        -shared_ptr~Account~ currentUser
-        -mt19937 rng
-        -int currentDay
-        -NEWS_PROBABILITY = 0.10
-        +addAsset(shared_ptr)
-        +removeAsset(string)
-        +getAsset(string) shared_ptr
-        +registerAccount(shared_ptr)
-        +findAccount(string) shared_ptr
-        +accountExists(string) bool
-        +setCurrentUser(shared_ptr)
-        +stepDay()
-        +seedDefaultAssets()
-        +save() bool
-        +load() bool
-        -applyNewsEvent()
-    }
-
-    class FileManager {
-        <<static>>
-        -DATA_DIR = "data/"
-        +ensureDataDir()$
-        +saveMarket(MarketEngine)$ bool
-        +loadMarket(MarketEngine)$ bool
-        +saveAccounts(vector)$ bool
-        +loadAccounts()$ vector
-        +appendTradeLog(TransactionRecord, string)$ bool
-    }
-
-    class Menu {
-        -MarketEngine engine
-        -bool running
-        +run()
-        -showMarket()
-        -showPortfolio()
-        -showTradeMenu()
-        -showAdminPanel()
-        -showTradeHistory()
-        -nextTradingDay()
-        -handleLogin()
-        -handleRegister()
-        -handleLogout()
-        -viewAsset(string)
-        -promptBuy(string)
-        -promptSell(string)
-    }
-
-    class Terminal {
-        <<namespace>>
-        +ANSI color constants
-        +clearScreen()$
-        +printSplash()$
-        +printHeader(string)$
-        +printTable(headers, rows)$
-        +printChart(deque)$
-        +printSparkline(deque) string$
-        +sparklineColor(deque) char*$
-        +printSuccess(string)$
-        +printError(string)$
-        +printWarning(string)$
-    }
-
-    class TransactionRecord {
-        <<struct>>
-        +string symbol
-        +string type
-        +double price
-        +int quantity
-        +string timestamp
-    }
-
-    class AssetType {
-        <<enum>>
-        STOCK
-        CRYPTO
-        ETF
-    }
-
-    FinancialAsset <|-- Stock : 繼承
-    FinancialAsset <|-- Crypto : 繼承
-    FinancialAsset <|-- ETF : 繼承
-    Account <|-- PlayerTrader : 繼承
-    Account <|-- AdminAccount : 繼承
-
-    MarketEngine "1" o-- "0..*" FinancialAsset : 管理
-    MarketEngine "1" o-- "0..*" Account : 管理
-    MarketEngine "1" --> "0..1" Account : currentUser
-    MarketEngine --> FileManager : 委派 I/O
-
-    Menu "1" --> "1" MarketEngine : 持有參考
-    Menu --> Terminal : 呼叫渲染
-
-    Account "1" *-- "0..*" TransactionRecord : 包含
-    FinancialAsset --> AssetType : 使用
-    FileManager ..> MarketEngine : 讀寫
-    FileManager ..> Account : 重建
-```
 
 ---
 
 ## 資料流程圖
 
-```mermaid
-sequenceDiagram
-    participant User as 👤 使用者
-    participant Menu as Menu
-    participant Engine as MarketEngine
-    participant Asset as FinancialAsset
-    participant FM as FileManager
-    participant Disk as 💾 data/
+> 📄 完整流程圖請見獨立檔案：**[DATA_FLOW.md](DATA_FLOW.md)**
 
-    Note over User,Disk: 啟動流程
-    User->>Menu: 執行 ./build/tse
-    Menu->>Engine: engine.load()
-    Engine->>FM: loadMarket() + loadAccounts()
-    FM->>Disk: 讀取 market_data.txt / accounts.txt
-    Disk-->>FM: 原始文字資料
-    FM-->>Engine: 重建物件
-
-    Note over User,Disk: 交易流程
-    User->>Menu: 選擇「買入」AAPL x 10 股
-    Menu->>Engine: getAsset("AAPL")
-    Engine-->>Menu: shared_ptr~Stock~
-    Menu->>Asset: getCurrentPrice() + getTradingFee()
-    Asset-->>Menu: price=182.5, fee=0.1%
-    Menu->>Engine: getCurrentUser()→player.buy()
-    Engine-->>Menu: true (交易成功)
-    Menu->>FM: appendTradeLog(record, username)
-    FM->>Disk: 追加至 trade_logs.txt
-
-    Note over User,Disk: 每日推進
-    User->>Menu: 選擇「下一個交易日」
-    Menu->>Engine: stepDay()
-    Engine->>Asset: updatePrice(隨機漫步新價格)
-    Engine-->>Menu: 漲跌榜 + 新聞事件
-
-    Note over User,Disk: 儲存並退出
-    User->>Menu: 選擇「儲存並退出」
-    Menu->>Engine: engine.save()
-    Engine->>FM: saveMarket() + saveAccounts()
-    FM->>Disk: 寫入 market_data.txt / accounts.txt
-```
+包含四個循序圖：啟動與狀態還原、交易執行（買入）、推進交易日、儲存並退出。
 
 ---
 
@@ -361,7 +100,10 @@ sequenceDiagram
 ```
 Terminal-Stock-Exchange/
 ├── CMakeLists.txt              # 建置設定 (C++17, -Wall -Wextra -O2)
-├── README.md                   # 本文件
+├── README.md                   # 本文件 (雙語)
+├── ARCHITECTURE.md             # 系統架構圖 (Mermaid)
+├── CLASS_DIAGRAM.md            # UML 類別關係圖 (Mermaid)
+├── DATA_FLOW.md                # 資料流程圖 (Mermaid)
 ├── data/                       # 執行時自動產生 (gitignored)
 │   ├── market_data.txt         # 資產登錄 + 30日價格歷史
 │   ├── accounts.txt            # 所有帳戶資料
@@ -510,249 +252,25 @@ The splash screen appears. You will be prompted to **Login** or **Register**.
 
 ## System Architecture
 
-```mermaid
-graph TD
-    subgraph Entry["🚀 Entry Point"]
-        MAIN["main.cpp<br/>─────────────<br/>Startup / Load / Seed"]
-    end
+> 📄 Full diagram in its own file: **[ARCHITECTURE.md](ARCHITECTURE.md)**
 
-    subgraph Engine["⚙️ Core Engine Layer"]
-        ME["MarketEngine<br/>─────────────<br/>Asset Registry<br/>Account Registry<br/>Random Walk Engine<br/>News Event System<br/>save() / load()"]
-    end
-
-    subgraph Assets["📈 Asset Module (OOP Inheritance)"]
-        FA["&lt;&lt;abstract&gt;&gt;<br/>FinancialAsset<br/>─────────────<br/>symbol / name / price<br/>priceHistory (deque&lt;30&gt;)<br/>calculateVolatility() = 0<br/>getTradingFee() = 0"]
-        ST["Stock<br/>─────────────<br/>vol = ±2%/day<br/>fee = 0.1%"]
-        CR["Crypto<br/>─────────────<br/>vol = ±7%/day<br/>fee = 0.5%"]
-        ET["ETF<br/>─────────────<br/>vol = ±0.8%/day<br/>fee = 0.03%<br/>basketSymbols[]"]
-        FA -->|inherits| ST
-        FA -->|inherits| CR
-        FA -->|inherits| ET
-    end
-
-    subgraph Accounts["👤 Account Module (OOP Inheritance)"]
-        AC["&lt;&lt;abstract&gt;&gt;<br/>Account<br/>─────────────<br/>username / passwordHash<br/>cashBalance<br/>portfolio (map)<br/>tradeHistory (vector)<br/>avgCostBasis (map)<br/>authenticate() = 0"]
-        PT["PlayerTrader<br/>─────────────<br/>buy() / sell()<br/>Weighted avg cost<br/>Starting cash $10,000"]
-        AA["AdminAccount<br/>─────────────<br/>addAsset()<br/>removeAsset()<br/>resetSimulation()"]
-        AC -->|inherits| PT
-        AC -->|inherits| AA
-    end
-
-    subgraph IO["💾 Persistence Layer"]
-        FM["FileManager (static)<br/>─────────────<br/>saveMarket() / loadMarket()<br/>saveAccounts() / loadAccounts()<br/>appendTradeLog()"]
-        D1["data/market_data.txt<br/>Asset registry + 30d history"]
-        D2["data/accounts.txt<br/>All account data"]
-        D3["data/trade_logs.txt<br/>Append-only trade log"]
-        FM --> D1
-        FM --> D2
-        FM --> D3
-    end
-
-    subgraph UI["🖥️ UI Layer"]
-        TN["Terminal (namespace)<br/>─────────────<br/>ANSI color constants<br/>printHeader / printTable<br/>printChart / printSparkline<br/>printSuccess/Error/Warning"]
-        MN["Menu<br/>─────────────<br/>showMarket()<br/>showPortfolio()<br/>showTradeMenu()<br/>showAdminPanel()<br/>nextTradingDay()"]
-    end
-
-    subgraph Types["🔧 Shared Types"]
-        TY["Types.hpp<br/>─────────────<br/>enum AssetType<br/>struct TransactionRecord<br/>nowIso8601()"]
-    end
-
-    MAIN --> ME
-    MAIN --> MN
-    ME -->|manages| Assets
-    ME -->|manages| Accounts
-    ME -->|delegates| FM
-    MN -->|calls| ME
-    MN -->|renders via| TN
-    FM -->|reconstructs| Accounts
-    FM -->|reconstructs| Assets
-    TY -.->|used by| Assets
-    TY -.->|used by| Accounts
-    TY -.->|used by| FM
-```
+Shows the five architectural layers (Entry Point → Core Engine → Asset/Account Modules → Persistence → UI) and how they connect at runtime.
 
 ---
 
 ## Class Relationship Diagram
 
-```mermaid
-classDiagram
-    class FinancialAsset {
-        <<abstract>>
-        #string symbol
-        #string name
-        #double currentPrice
-        #deque~double~ priceHistory
-        #AssetType assetType
-        #MAX_HISTORY = 30
-        +calculateVolatility()* double
-        +getTradingFee()* double
-        +updatePrice(double)
-        +display()
-        +getSymbol() string
-        +getCurrentPrice() double
-        +getPriceHistory() deque
-    }
+> 📄 Full diagram in its own file: **[CLASS_DIAGRAM.md](CLASS_DIAGRAM.md)**
 
-    class Stock {
-        -double volatilityFactor
-        -double dividendYield
-        +calculateVolatility() double
-        +getTradingFee() double
-        +getDividendYield() double
-    }
+Full UML class diagram with all 10 classes, their members, methods, and relationships (inheritance, aggregation, composition, dependency).
 
-    class Crypto {
-        -double volatilityFactor
-        -double tradingFeeRate
-        -bool tradesAroundClock
-        +calculateVolatility() double
-        +getTradingFee() double
-        +isAroundClock() bool
-    }
+---
 
-    class ETF {
-        -double volatilityFactor
-        -vector~string~ basketSymbols
-        +calculateVolatility() double
-        +getTradingFee() double
-        +getBasketSymbols() vector
-    }
+## Data Flow & Sequence Diagrams
 
-    class Account {
-        <<abstract>>
-        #string username
-        #string passwordHash
-        #double cashBalance
-        #unordered_map portfolio
-        #vector~TransactionRecord~ tradeHistory
-        #unordered_map avgCostBasis
-        +authenticate(string)* bool
-        +getAccountType()* string
-        +getCashBalance() double
-        +modifyCash(double)
-        +setPortfolio(map)
-        +addTradeRecord(TransactionRecord)
-        +setAvgCostBasis(map)
-        +setPasswordHashDirect(string)
-    }
+> 📄 Full diagrams in their own file: **[DATA_FLOW.md](DATA_FLOW.md)**
 
-    class PlayerTrader {
-        +PlayerTrader(string, string, double)
-        +authenticate(string) bool
-        +getAccountType() string
-        +buy(string, int, double, double) bool
-        +sell(string, int, double, double) bool
-    }
-
-    class AdminAccount {
-        +AdminAccount(string, string)
-        +authenticate(string) bool
-        +getAccountType() string
-        +addAsset(shared_ptr) void
-        +removeAsset(string) void
-        +resetSimulation() void
-    }
-
-    class MarketEngine {
-        -unordered_map assets
-        -vector accounts
-        -shared_ptr currentUser
-        -mt19937 rng
-        -int currentDay
-        -NEWS_PROBABILITY = 0.10
-        +addAsset(shared_ptr) void
-        +removeAsset(string) void
-        +getAsset(string) shared_ptr
-        +registerAccount(shared_ptr) void
-        +findAccount(string) shared_ptr
-        +accountExists(string) bool
-        +setCurrentUser(shared_ptr) void
-        +stepDay() void
-        +seedDefaultAssets() void
-        +save() bool
-        +load() bool
-    }
-
-    class FileManager {
-        <<static>>
-        -DATA_DIR = "data/"
-        +ensureDataDir()$
-        +saveMarket(MarketEngine)$ bool
-        +loadMarket(MarketEngine)$ bool
-        +saveAccounts(vector)$ bool
-        +loadAccounts()$ vector
-        +appendTradeLog(TransactionRecord, string)$ bool
-    }
-
-    class Menu {
-        -MarketEngine engine
-        -bool running
-        +run()
-        -showMarket()
-        -showPortfolio()
-        -showTradeMenu()
-        -showAdminPanel()
-        -showTradeHistory()
-        -nextTradingDay()
-        -handleLogin()
-        -handleRegister()
-        -handleLogout()
-        -viewAsset(string)
-        -promptBuy(string)
-        -promptSell(string)
-    }
-
-    class Terminal {
-        <<namespace>>
-        +ANSI color constants
-        +clearScreen()$
-        +printSplash()$
-        +printHeader(string)$
-        +printTable(headers, rows)$
-        +printChart(deque)$
-        +printSparkline(deque) string$
-        +sparklineColor(deque) char*$
-        +printSuccess(string)$
-        +printError(string)$
-        +printWarning(string)$
-    }
-
-    class TransactionRecord {
-        <<struct>>
-        +string symbol
-        +string type
-        +double price
-        +int quantity
-        +string timestamp
-    }
-
-    class AssetType {
-        <<enum>>
-        STOCK
-        CRYPTO
-        ETF
-    }
-
-    FinancialAsset <|-- Stock : inherits
-    FinancialAsset <|-- Crypto : inherits
-    FinancialAsset <|-- ETF : inherits
-    Account <|-- PlayerTrader : inherits
-    Account <|-- AdminAccount : inherits
-
-    MarketEngine "1" o-- "0..*" FinancialAsset : manages
-    MarketEngine "1" o-- "0..*" Account : manages
-    MarketEngine "1" --> "0..1" Account : currentUser
-    MarketEngine --> FileManager : delegates I/O
-
-    Menu "1" --> "1" MarketEngine : holds reference
-    Menu --> Terminal : calls for rendering
-
-    Account "1" *-- "0..*" TransactionRecord : contains
-    FinancialAsset --> AssetType : uses
-    FileManager ..> MarketEngine : reads and writes
-    FileManager ..> Account : reconstructs
-```
+Covers four runtime flows: startup & state restoration, trade execution (buy), advancing trading days, and save & quit.
 
 ---
 
@@ -761,7 +279,10 @@ classDiagram
 ```
 Terminal-Stock-Exchange/
 ├── CMakeLists.txt              # Build config (C++17, -Wall -Wextra -O2)
-├── README.md                   # This file
+├── README.md                   # This file (bilingual)
+├── ARCHITECTURE.md             # System architecture diagram (Mermaid)
+├── CLASS_DIAGRAM.md            # UML class relationship diagram (Mermaid)
+├── DATA_FLOW.md                # Data flow & sequence diagrams (Mermaid)
 ├── data/                       # Auto-generated at runtime (gitignored)
 │   ├── market_data.txt         # Asset registry + 30-day price history
 │   ├── accounts.txt            # All account data (pipe-delimited)
