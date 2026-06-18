@@ -1,0 +1,4 @@
+# This file intentionally left empty.
+# Ensures the data/ directory is committed to version control.
+# Epic 3 will populate this directory with:
+#   market_data.txt, accounts.txt, trade_logs.txt

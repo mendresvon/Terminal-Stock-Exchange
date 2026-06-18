@@ -1,0 +1,3 @@
+/Users/breznev/Projects/Terminal-Stock-Exchange/build/CMakeFiles/tse.dir
+/Users/breznev/Projects/Terminal-Stock-Exchange/build/CMakeFiles/edit_cache.dir
+/Users/breznev/Projects/Terminal-Stock-Exchange/build/CMakeFiles/rebuild_cache.dir
