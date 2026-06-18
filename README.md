@@ -45,8 +45,9 @@
 
 ### 系統需求
 
-- macOS 或 Linux
-- C++17 相容編譯器 (Clang ≥ 10 / GCC ≥ 9)
+- macOS 或 Linux (原生支援)
+- Windows 10/11 (實驗性支援；**必須**使用 Windows Terminal 並在執行前於終端機執行 `chcp 65001` 以支援 UTF-8 走勢圖與 ANSI 顏色)
+- C++17 相容編譯器 (Clang ≥ 10 / GCC ≥ 9 / MSVC)
 - CMake ≥ 3.16
 
 ### 編譯與執行
@@ -173,8 +174,9 @@ Terminal-Stock-Exchange/
 
 ### Prerequisites
 
-- macOS or Linux
-- C++17-compatible compiler (Clang ≥ 10 / GCC ≥ 9)
+- macOS or Linux (natively supported)
+- Windows 10/11 (experimentally supported; **must** use Windows Terminal and run `chcp 65001` in the console before launching to support UTF-8 sparklines and ANSI colors)
+- C++17-compatible compiler (Clang ≥ 10 / GCC ≥ 9 / MSVC)
 - CMake ≥ 3.16
 
 ### Build & Run
