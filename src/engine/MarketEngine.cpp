@@ -2,6 +2,8 @@
 #include "assets/Stock.hpp"
 #include "assets/Crypto.hpp"
 #include "assets/ETF.hpp"
+#include "accounts/AdminAccount.hpp"
+#include "io/FileManager.hpp"
 
 #include <algorithm>
 #include <iomanip>
@@ -123,6 +125,36 @@ void MarketEngine::listAssets() const {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+//  Account registry
+// ─────────────────────────────────────────────────────────────────────────
+
+void MarketEngine::registerAccount(std::shared_ptr<Account> account) {
+    // Replace any existing account with the same username
+    for (auto& a : accounts) {
+        if (a->getUsername() == account->getUsername()) {
+            a = account;
+            return;
+        }
+    }
+    accounts.push_back(std::move(account));
+}
+
+std::shared_ptr<Account> MarketEngine::findAccount(const std::string& username) const {
+    for (const auto& a : accounts) {
+        if (a->getUsername() == username) return a;
+    }
+    return nullptr;
+}
+
+const std::vector<std::shared_ptr<Account>>& MarketEngine::getAccounts() const {
+    return accounts;
+}
+
+bool MarketEngine::accountExists(const std::string& username) const {
+    return findAccount(username) != nullptr;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 //  Session management
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -236,4 +268,31 @@ void MarketEngine::seedDefaultAssets() {
         475.50, std::vector<std::string>{"AAPL","MSFT","AMZN","NVDA"}, 0.008));
     addAsset(std::make_shared<ETF>("QQQ", "NASDAQ-100 ETF",
         390.80, std::vector<std::string>{"AAPL","MSFT","NVDA"},        0.010));
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+//  Persistence  (Epic 3)
+// ─────────────────────────────────────────────────────────────────────────
+
+bool MarketEngine::save() const {
+    bool ok = true;
+    ok &= FileManager::saveMarket(*this);
+    ok &= FileManager::saveAccounts(accounts);
+    return ok;
+}
+
+bool MarketEngine::load() {
+    bool marketOk   = FileManager::loadMarket(*this);
+    auto loadedAccs = FileManager::loadAccounts();
+
+    for (auto& a : loadedAccs) {
+        registerAccount(a);
+    }
+
+    // Always ensure a default admin account exists
+    if (!accountExists("admin")) {
+        registerAccount(std::make_shared<AdminAccount>("admin", "admin"));
+    }
+
+    return marketOk || !loadedAccs.empty();
 }

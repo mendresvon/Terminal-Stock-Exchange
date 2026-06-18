@@ -5,6 +5,7 @@
 #include <random>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "assets/FinancialAsset.hpp"
 #include "accounts/Account.hpp"
@@ -19,6 +20,13 @@
 //  • With NEWS_PROBABILITY (10 %) per day, one random asset receives a
 //    large spike or crash, and a dramatic headline is printed.
 //  • clearAssets() allows the admin panel to wipe and re-seed the market.
+//
+//  Epic 3 additions
+//  ────────────────
+//  • Account registry: stores all registered accounts (PlayerTrader /
+//    AdminAccount).  findAccount() provides O(n) lookup by username.
+//  • save() / load() delegate to FileManager for full state persistence.
+//  • setCurrentDay() lets FileManager restore the day counter from disk.
 // ─────────────────────────────────────────────────────────────────────────
 
 class MarketEngine {
@@ -26,6 +34,9 @@ private:
     std::unordered_map<std::string, std::shared_ptr<FinancialAsset>> assets;
     std::shared_ptr<Account> currentUser;
     int currentDay;
+
+    // ── Account registry ──────────────────────────────────────────────────
+    std::vector<std::shared_ptr<Account>> accounts;
 
     // ── Random number generation ──────────────────────────────────────────
     std::mt19937 rng;   ///< Seeded from std::random_device on construction
@@ -77,12 +88,28 @@ public:
     /// Sorted market table: Stocks → ETFs → Crypto, then alphabetically.
     void listAssets() const;
 
+    // ── Account registry ──────────────────────────────────────────────────
+    /// Adds an account to the registry (replaces if username already exists).
+    void registerAccount(std::shared_ptr<Account> account);
+
+    /// O(n) lookup by username; returns nullptr if not found.
+    std::shared_ptr<Account> findAccount(const std::string& username) const;
+
+    /// Returns all registered accounts (for save/UI).
+    const std::vector<std::shared_ptr<Account>>& getAccounts() const;
+
+    /// Returns true if username is already in the registry.
+    bool accountExists(const std::string& username) const;
+
     // ── Session management ────────────────────────────────────────────────
     void                     setCurrentUser(std::shared_ptr<Account> user);
     std::shared_ptr<Account> getCurrentUser() const;
 
     // ── Simulation control ────────────────────────────────────────────────
     int  getCurrentDay() const { return currentDay; }
+
+    /// FileManager uses this to restore the day counter from disk.
+    void setCurrentDay(int day) { currentDay = day; }
 
     /// Advances one trading day:
     ///  1. Random-walk each asset price using N(0, volatility).
@@ -91,4 +118,11 @@ public:
 
     // ── Seeding ───────────────────────────────────────────────────────────
     void seedDefaultAssets();
+
+    // ── Persistence (Epic 3) ──────────────────────────────────────────────
+    /// Writes market_data.txt + accounts.txt.  Returns true on full success.
+    bool save() const;
+
+    /// Reads market_data.txt + accounts.txt.  Returns true if any data loaded.
+    bool load();
 };

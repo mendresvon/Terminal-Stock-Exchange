@@ -16,8 +16,10 @@ private:
     void showPortfolio();
     void showTradeMenu();
     void showAdminPanel();
+    void showTradeHistory();   ///< Epic 3: timestamped transaction log
     void nextTradingDay();
     void handleLogin();
+    void handleRegister();     ///< Epic 3: new account registration
     void handleLogout();
 
     // ── Trade workflow ────────────────────────────────────────────

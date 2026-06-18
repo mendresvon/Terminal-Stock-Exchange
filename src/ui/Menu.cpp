@@ -1,9 +1,11 @@
 #include "Menu.hpp"
 #include "Terminal.hpp"
 #include "accounts/PlayerTrader.hpp"
+#include "accounts/AdminAccount.hpp"
 #include "assets/Stock.hpp"
 #include "assets/Crypto.hpp"
 #include "assets/ETF.hpp"
+#include "io/FileManager.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -90,32 +92,40 @@ void Menu::run() {
         Terminal::printDivider();
         std::cout << "\n";
 
-        bool isAdmin = user && (user->getAccountType() == "ADMIN");
+        bool isAdmin  = user && (user->getAccountType() == "ADMIN");
+        bool isPlayer = user && (user->getAccountType() == "PLAYER");
 
         std::cout << "  " << Terminal::BOLD << Terminal::CYAN  << " 1" << Terminal::RESET << "  View Market\n";
         std::cout << "  " << Terminal::BOLD << Terminal::CYAN  << " 2" << Terminal::RESET << "  My Portfolio\n";
         std::cout << "  " << Terminal::BOLD << Terminal::CYAN  << " 3" << Terminal::RESET << "  Trade\n";
         std::cout << "  " << Terminal::BOLD << Terminal::CYAN  << " 4" << Terminal::RESET << "  Next Trading Day\n";
+        if (isPlayer) {
+            std::cout << "  " << Terminal::BOLD << Terminal::CYAN  << " 7" << Terminal::RESET << "  Trade History\n";
+        }
         if (isAdmin) {
             std::cout << "  " << Terminal::BOLD << Terminal::MAGENTA << " 5" << Terminal::RESET << "  Admin Panel\n";
         }
         std::cout << "  " << Terminal::BOLD << Terminal::YELLOW << " 6" << Terminal::RESET << "  Logout\n";
-        std::cout << "  " << Terminal::BOLD << Terminal::RED    << " 0" << Terminal::RESET << "  Quit\n";
+        std::cout << "  " << Terminal::BOLD << Terminal::RED    << " 0" << Terminal::RESET << "  Save & Quit\n";
 
         std::cout << "\n";
         Terminal::printDivider();
         std::cout << "\n  " << Terminal::DIM << "Enter choice: " << Terminal::RESET;
 
-        int choice = getMenuChoice(0, 6);
+        int choice = getMenuChoice(0, 7);
 
         switch (choice) {
             case 1: showMarket();     break;
             case 2: showPortfolio();  break;
             case 3: showTradeMenu();  break;
             case 4: nextTradingDay(); break;
-            case 5: if (isAdmin) showAdminPanel(); break;
+            case 5: if (isAdmin)  showAdminPanel();   break;
             case 6: handleLogout();   break;
-            case 0: running = false;  break;
+            case 7: if (isPlayer) showTradeHistory(); break;
+            case 0:
+                engine.save();
+                running = false;
+                break;
             default: break;
         }
     }
@@ -649,31 +659,123 @@ void Menu::showAdminPanel() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-//  handleLogin() / handleLogout()
+//  handleLogin()  /  handleRegister()  /  handleLogout()
 // ─────────────────────────────────────────────────────────────────────────
 
 void Menu::handleLogin() {
+    while (true) {
+        Terminal::clearScreen();
+        Terminal::printHeader("WELCOME TO TERMINAL STOCK EXCHANGE");
+
+        std::cout << "\n"
+                  << "  " << Terminal::BOLD << Terminal::CYAN  << " 1" << Terminal::RESET << "  Login\n"
+                  << "  " << Terminal::BOLD << Terminal::BRIGHT_GREEN << " 2" << Terminal::RESET << "  Register new account\n"
+                  << "  " << Terminal::BOLD << Terminal::RED    << " 0" << Terminal::RESET << "  Quit\n"
+                  << "\n  Enter choice: ";
+
+        int choice = getMenuChoice(0, 2);
+
+        if (choice == 0) {
+            running = false;
+            return;
+        }
+
+        if (choice == 2) {
+            handleRegister();
+            // handleRegister sets currentUser on success — jump to main menu
+            if (engine.getCurrentUser()) return;
+            continue;
+        }
+
+        // ── Login flow ─────────────────────────────────────────────────
+        Terminal::clearScreen();
+        Terminal::printHeader("LOGIN");
+
+        std::cout << "\n  Username: ";
+        std::string username;
+        std::cin >> username;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        std::cout << "  Password: ";
+        std::string password;
+        std::cin >> password;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        auto account = engine.findAccount(username);
+        if (!account || !account->authenticate(password)) {
+            Terminal::printError("Invalid username or password.");
+            waitForEnter();
+            continue;   // back to login/register prompt
+        }
+
+        engine.setCurrentUser(account);
+        Terminal::printSuccess("Welcome back, " + username + "!");
+        waitForEnter();
+        return;   // proceed to main menu
+    }
+}
+
+void Menu::handleRegister() {
     Terminal::clearScreen();
-    Terminal::printHeader("WELCOME TO TERMINAL STOCK EXCHANGE");
+    Terminal::printHeader("REGISTER NEW ACCOUNT");
 
-    std::cout << "\n  " << Terminal::DIM
-              << "Full authentication system coming in Epic 3.\n"
-              << "  Auto-logging in as demo player...\n"
-              << Terminal::RESET << "\n";
+    std::cout << "\n";
 
-    auto player = std::make_shared<PlayerTrader>("demo_trader", "password", 10'000.0);
-    engine.setCurrentUser(player);
+    // ── Username ──────────────────────────────────────────────────────
+    std::string username;
+    while (true) {
+        std::cout << "  Choose a username: ";
+        std::cin >> username;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    std::cout << "  " << Terminal::BRIGHT_GREEN
-              << "\u2713 Logged in as demo_trader  ($10,000.00 starting balance)"
-              << Terminal::RESET << "\n";
+        if (username.empty()) {
+            Terminal::printError("Username cannot be empty.");
+            continue;
+        }
+        if (engine.accountExists(username)) {
+            Terminal::printError("Username '" + username + "' is already taken.");
+            continue;
+        }
+        break;
+    }
 
+    // ── Password + confirmation ───────────────────────────────────────
+    std::string password;
+    while (true) {
+        std::cout << "  Choose a password: ";
+        std::cin >> password;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (password.empty()) {
+            Terminal::printError("Password cannot be empty.");
+            continue;
+        }
+
+        std::cout << "  Confirm password: ";
+        std::string confirm;
+        std::cin >> confirm;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (password != confirm) {
+            Terminal::printError("Passwords do not match.  Try again.");
+            continue;
+        }
+        break;
+    }
+
+    auto newPlayer = std::make_shared<PlayerTrader>(username, password, 10'000.0);
+    engine.registerAccount(newPlayer);
+    engine.setCurrentUser(newPlayer);
+
+    Terminal::printSuccess("Account created!  Starting balance: $10,000.00");
     waitForEnter();
 }
 
 void Menu::handleLogout() {
+    engine.save();
     engine.setCurrentUser(nullptr);
-    running = false;
+    // Return to the login screen instead of quitting
+    handleLogin();
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -704,4 +806,95 @@ int Menu::getMenuChoice(int min, int max) {
 void Menu::waitForEnter() {
     std::cout << "\n  " << Terminal::DIM << "Press Enter to continue..." << Terminal::RESET;
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+//  showTradeHistory()  —  Timestamped transaction log table (Epic 3)
+// ─────────────────────────────────────────────────────────────────────────
+
+void Menu::showTradeHistory() {
+    Terminal::clearScreen();
+    Terminal::printHeader("TRADE HISTORY");
+
+    auto user = engine.getCurrentUser();
+    if (!user) { waitForEnter(); return; }
+
+    const auto& history = user->getTradeHistory();
+
+    if (history.empty()) {
+        std::cout << "\n  " << Terminal::DIM
+                  << "No trades recorded yet.  Use option  3  to start trading!"
+                  << Terminal::RESET << "\n";
+        waitForEnter();
+        return;
+    }
+
+    // ── Column widths ─────────────────────────────────────────────────────
+    const int W_TS  = 20;   // timestamp
+    const int W_TY  = 6;    // BUY/SELL
+    const int W_SY  = 7;    // symbol
+    const int W_QT  = 7;    // quantity
+    const int W_PR  = 12;   // price
+
+    // Border helpers
+    auto hRule = [&](const char* l, const char* m, const char* r) {
+        std::cout << Terminal::CYAN << l;
+        for (int w : {W_TS, W_TY, W_SY, W_QT, W_PR}) {
+            for (int j = 0; j < w + 2; ++j) std::cout << "\u2550";
+            std::cout << (w == W_PR ? r : m);
+        }
+        std::cout << Terminal::RESET << "\n";
+    };
+
+    hRule("\u2554", "\u2566", "\u2557");
+
+    // Header row
+    auto hcell = [&](const std::string& s, int w) {
+        std::cout << " " << Terminal::BOLD
+                  << std::left << std::setw(w) << s
+                  << Terminal::RESET << Terminal::CYAN << " \u2551" << Terminal::RESET;
+    };
+    std::cout << Terminal::CYAN << "\u2551" << Terminal::RESET;
+    hcell("TIMESTAMP",  W_TS);
+    hcell("TYPE",       W_TY);
+    hcell("SYMBOL",     W_SY);
+    hcell("QTY",        W_QT);
+    hcell("PRICE",      W_PR);
+    std::cout << "\n";
+
+    hRule("\u2560", "\u256c", "\u2563");
+
+    // Data rows
+    for (const auto& rec : history) {
+        const char* typeColor = (rec.type == "BUY") ? Terminal::BRIGHT_GREEN
+                                                    : Terminal::BRIGHT_RED;
+
+        auto cell = [&](const std::string& s, int w) {
+            std::cout << " " << std::left << std::setw(w) << s
+                      << Terminal::CYAN << " \u2551" << Terminal::RESET;
+        };
+        auto colorCell = [&](const std::string& s, int w, const char* col) {
+            std::cout << " " << col
+                      << std::left << std::setw(w) << s
+                      << Terminal::RESET << Terminal::CYAN << " \u2551" << Terminal::RESET;
+        };
+
+        std::ostringstream priceStr;
+        priceStr << "$" << std::fixed << std::setprecision(2) << rec.price;
+
+        std::cout << Terminal::CYAN << "\u2551" << Terminal::RESET;
+        cell(rec.timestamp.empty() ? "—" : rec.timestamp, W_TS);
+        colorCell(rec.type,              W_TY, typeColor);
+        cell(rec.symbol,                 W_SY);
+        cell(std::to_string(rec.quantity), W_QT);
+        cell(priceStr.str(),             W_PR);
+        std::cout << "\n";
+    }
+
+    hRule("\u255a", "\u2569", "\u255d");
+
+    std::cout << "\n  " << Terminal::DIM << "Showing " << history.size()
+              << " trade(s) this session." << Terminal::RESET << "\n\n";
+
+    waitForEnter();
 }

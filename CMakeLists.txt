@@ -13,6 +13,7 @@ add_executable(tse
     src/accounts/PlayerTrader.cpp
     src/accounts/AdminAccount.cpp
     src/engine/MarketEngine.cpp
+    src/io/FileManager.cpp
     src/ui/Terminal.cpp
     src/ui/Menu.cpp
 )

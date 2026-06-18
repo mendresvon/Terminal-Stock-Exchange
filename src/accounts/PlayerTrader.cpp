@@ -1,4 +1,5 @@
 #include "PlayerTrader.hpp"
+#include "io/FileManager.hpp"
 
 #include <string>
 
@@ -32,7 +33,7 @@ bool PlayerTrader::buy(const std::string& symbol,
                        int                quantity,
                        double             price,
                        double             feeRate,
-                       int                day)
+                       int                /*day*/)
 {
     if (quantity <= 0 || price <= 0.0) return false;
 
@@ -55,8 +56,10 @@ bool PlayerTrader::buy(const std::string& symbol,
     updateCostBasis(symbol, newQty, newAvgCost);
     cashBalance -= totalCost;
 
-    // Audit log
-    addTradeRecord({ symbol, "BUY", price, quantity, "Day " + std::to_string(day) });
+    // Audit log — real ISO-8601 timestamp (Epic 3)
+    TransactionRecord rec{ symbol, "BUY", price, quantity, nowIso8601() };
+    addTradeRecord(rec);
+    FileManager::appendTradeLog(rec, username);
 
     return true;
 }
@@ -76,7 +79,7 @@ bool PlayerTrader::sell(const std::string& symbol,
                         int                quantity,
                         double             price,
                         double             feeRate,
-                        int                day)
+                        int                /*day*/)
 {
     if (quantity <= 0 || price <= 0.0) return false;
 
@@ -95,8 +98,10 @@ bool PlayerTrader::sell(const std::string& symbol,
 
     cashBalance += proceeds;
 
-    // Audit log
-    addTradeRecord({ symbol, "SELL", price, quantity, "Day " + std::to_string(day) });
+    // Audit log — real ISO-8601 timestamp (Epic 3)
+    TransactionRecord rec{ symbol, "SELL", price, quantity, nowIso8601() };
+    addTradeRecord(rec);
+    FileManager::appendTradeLog(rec, username);
 
     return true;
 }

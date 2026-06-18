@@ -74,4 +74,15 @@ public:
     void setPortfolio(const std::unordered_map<std::string, int>& p)         { portfolio   = p;        }
     void addTradeRecord(const TransactionRecord& record)                      { tradeHistory.push_back(record); }
     void modifyCash(double delta)                                             { cashBalance += delta;   }
+
+    /// Restores the weighted-average cost map from persisted data (FileManager).
+    void setAvgCostBasis(const std::unordered_map<std::string, double>& basis) {
+        avgCostBasis = basis;
+    }
+
+    /// Directly sets the stored password hash (FileManager use only — bypasses
+    /// hashing so a hash loaded from disk is not double-hashed).
+    void setPasswordHashDirect(const std::string& hash) {
+        passwordHash = hash;
+    }
 };
