@@ -22,16 +22,19 @@ public:
 
     // ── Trading operations (Epic 2 implementation) ────────────────
     /// Deducts cash + fee and adds shares to portfolio.
+    /// @param day  Simulation day for the transaction timestamp.
     /// @return true on success, false if insufficient funds.
     bool buy(const std::string& symbol,
              int                quantity,
              double             price,
-             double             feeRate);
+             double             feeRate,
+             int                day = 0);
 
     /// Removes shares from portfolio and credits cash − fee.
     /// @return true on success, false if insufficient holdings.
     bool sell(const std::string& symbol,
               int                quantity,
               double             price,
-              double             feeRate);
+              double             feeRate,
+              int                day = 0);
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <string>
 #include <vector>
 
@@ -50,5 +51,23 @@ void printTable(const std::vector<std::string>&              headers,
 
 /// Writes @p text wrapped in @p color, then resets.
 void printColored(const std::string& text, const char* color);
+
+/**
+ * Renders a scrolling ASCII line chart of price history.
+ * Dots mark price points; vertical bars connect adjacent levels.
+ * Green = price rose vs previous day; Red = price fell.
+ *
+ * @param history  The asset's price history deque (up to 30 entries).
+ */
+void printChart(const std::deque<double>& history);
+
+/// Prints a green success line:  ✓ <msg>
+void printSuccess(const std::string& msg);
+
+/// Prints a red error line:      ✗ <msg>
+void printError(const std::string& msg);
+
+/// Prints a yellow warning line: ⚠ <msg>
+void printWarning(const std::string& msg);
 
 } // namespace Terminal

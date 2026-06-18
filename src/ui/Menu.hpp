@@ -20,6 +20,12 @@ private:
     void handleLogin();
     void handleLogout();
 
+    // ── Trade workflow ────────────────────────────────────────────
+    /// Shows asset detail panel + chart, then offers Buy/Sell.
+    void viewAsset(const std::string& symbol);
+    void promptBuy (const std::string& symbol);
+    void promptSell(const std::string& symbol);
+
     // ── Input helpers ─────────────────────────────────────────────
     /// Reads an integer in [min, max], re-prompting on bad input.
     int  getMenuChoice(int min, int max);

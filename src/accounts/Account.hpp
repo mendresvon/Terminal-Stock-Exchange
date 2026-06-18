@@ -28,13 +28,21 @@ protected:
     double      cashBalance;
 
     /// symbol → quantity held
-    std::unordered_map<std::string, int>  portfolio;
-    std::vector<TransactionRecord>        tradeHistory;
+    std::unordered_map<std::string, int>    portfolio;
+    std::vector<TransactionRecord>          tradeHistory;
+    /// symbol → weighted-average purchase cost per unit
+    std::unordered_map<std::string, double> avgCostBasis;
 
     // TODO: upgrade hash — std::hash is NOT cryptographically secure
     static std::string hashPassword(const std::string& password) {
         std::hash<std::string> hasher;
         return std::to_string(hasher(password));
+    }
+
+    /// Updates or erases the cost-basis entry for a position.
+    void updateCostBasis(const std::string& symbol, int qty, double avgCost) {
+        if (qty <= 0) { avgCostBasis.erase(symbol); }
+        else          { avgCostBasis[symbol] = avgCost; }
     }
 
 public:
@@ -57,8 +65,9 @@ public:
     double             getCashBalance()  const { return cashBalance;  }
     const std::string& getPasswordHash() const { return passwordHash; }
 
-    const std::unordered_map<std::string, int>& getPortfolio()    const { return portfolio;    }
-    const std::vector<TransactionRecord>&        getTradeHistory() const { return tradeHistory; }
+    const std::unordered_map<std::string, int>&    getPortfolio()    const { return portfolio;    }
+    const std::vector<TransactionRecord>&           getTradeHistory() const { return tradeHistory; }
+    const std::unordered_map<std::string, double>&  getAvgCostBasis() const { return avgCostBasis; }
 
     // ── Setters / mutators (used by derived classes and Epic 3 I/O)
     void setCashBalance(double balance)                                       { cashBalance = balance;  }
