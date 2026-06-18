@@ -16,6 +16,74 @@ void clearScreen() {
     std::cout << "\033[2J\033[H" << std::flush;
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+//  printSplash()  —  one-time ASCII art welcome banner
+// ─────────────────────────────────────────────────────────────────────────
+
+void printSplash() {
+    clearScreen();
+
+    // Outer box (64 chars wide)
+    auto border = [&](const char* l, const char* r, int fill) {
+        std::cout << BRIGHT_CYAN << BOLD << l;
+        for (int i = 0; i < fill; ++i) std::cout << "\u2550";
+        std::cout << r << RESET << "\n";
+    };
+    auto line = [&](const std::string& content) {
+        // content must be exactly 62 visible chars
+        std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET
+                  << content
+                  << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
+    };
+
+    border("\u2554", "\u2557", 62);
+    line("                                                              ");
+    // Row 1 of art
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
+    std::cout << "  " << BRIGHT_CYAN << BOLD;
+    std::cout << " _____ ____  _____ ";
+    std::cout << RESET << "  ";
+    std::cout << BRIGHT_YELLOW << BOLD << "TERMINAL STOCK EXCHANGE" << RESET;
+    std::cout << "   ";
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
+
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
+    std::cout << "  " << BRIGHT_CYAN << BOLD;
+    std::cout << "|_   _/ ___|| ____|";
+    std::cout << RESET << "  ";
+    std::cout << DIM << "Simulate. Trade. Conquer." << RESET;
+    std::cout << "      ";
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
+
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
+    std::cout << "  " << BRIGHT_CYAN << BOLD;
+    std::cout << "  | | \\___ \\|  _|  ";
+    std::cout << RESET << "  ";
+    std::cout << DIM << "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500" << RESET;
+    std::cout << "   ";
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
+
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
+    std::cout << "  " << BRIGHT_CYAN << BOLD;
+    std::cout << "  | | ___) || |___  ";
+    std::cout << RESET << "  ";
+    std::cout << GREEN << "v1.0" << RESET << "  \u00b7  " << DIM << "C++17" << RESET << "  \u00b7  " << DIM << "ANSI UI" << RESET;
+    std::cout << "       ";
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
+
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
+    std::cout << "  " << BRIGHT_CYAN << BOLD;
+    std::cout << "  |_| |____/|_____| ";
+    std::cout << RESET << "  ";
+    std::cout << DIM << "Built with OOP \u00b7 STL \u00b7 File I/O" << RESET;
+    std::cout << "         ";
+    std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
+
+    line("                                                              ");
+    border("\u255a", "\u255d", 62);
+    std::cout << "\n";
+}
+
 void printHeader(const std::string& title) {
     const int inner = BOX_WIDTH - 2;
 
@@ -86,6 +154,55 @@ void printTable(const std::vector<std::string>&              headers,
 
 void printColored(const std::string& text, const char* color) {
     std::cout << color << text << RESET;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+//  printSparkline() / sparklineColor()  —  compact inline trend bar
+//
+//  Uses UTF-8 block-element characters U+2581 – U+2588 (▁▂▃▄▅▆▇█).
+//  Each character is 3 bytes on disk but renders as 1 visible column.
+// ─────────────────────────────────────────────────────────────────────────
+
+// The 8 UTF-8 block-element strings (▁ through █)
+static const char* const BLOCKS[8] = {
+    "\xe2\x96\x81",  // ▁  1/8
+    "\xe2\x96\x82",  // ▂  2/8
+    "\xe2\x96\x83",  // ▃  3/8
+    "\xe2\x96\x84",  // ▄  4/8
+    "\xe2\x96\x85",  // ▅  5/8
+    "\xe2\x96\x86",  // ▆  6/8
+    "\xe2\x96\x87",  // ▇  7/8
+    "\xe2\x96\x88",  // █  8/8
+};
+
+std::string printSparkline(const std::deque<double>& history, int width) {
+    if (history.empty()) return std::string(static_cast<std::size_t>(width), ' ');
+
+    // Take the last `width` entries
+    int sz  = static_cast<int>(history.size());
+    int beg = std::max(0, sz - width);
+
+    double lo = *std::min_element(history.cbegin() + beg, history.cend());
+    double hi = *std::max_element(history.cbegin() + beg, history.cend());
+    double rng = (hi - lo < 1e-9) ? 1.0 : (hi - lo);
+
+    std::string result;
+    result.reserve(static_cast<std::size_t>(width) * 3);  // 3 bytes per block char
+    for (int i = beg; i < sz; ++i) {
+        double norm = (history[static_cast<std::size_t>(i)] - lo) / rng;  // 0..1
+        int    idx  = static_cast<int>(norm * 7.0 + 0.5);
+        idx = std::max(0, std::min(7, idx));
+        result += BLOCKS[idx];
+    }
+    // Pad with spaces if fewer than `width` data points
+    int missing = width - (sz - beg);
+    for (int i = 0; i < missing; ++i) result += ' ';
+    return result;
+}
+
+const char* sparklineColor(const std::deque<double>& history) {
+    if (history.size() < 2) return DIM;
+    return (history.back() >= history.front()) ? BRIGHT_GREEN : BRIGHT_RED;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

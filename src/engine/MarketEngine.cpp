@@ -4,6 +4,7 @@
 #include "assets/ETF.hpp"
 #include "accounts/AdminAccount.hpp"
 #include "io/FileManager.hpp"
+#include "ui/Terminal.hpp"
 
 #include <algorithm>
 #include <iomanip>
@@ -73,24 +74,23 @@ void MarketEngine::listAssets() const {
 
     // Header row
     std::cout << "\n  "
-              << std::left
-              << std::setw(7)  << "SYMBOL"
+              << Terminal::BOLD
+              << std::left  << std::setw(7)  << "SYMBOL"
               << std::setw(22) << "NAME"
-              << std::right
-              << std::setw(12) << "PRICE"
-              << std::setw(8)  << "CHANGE"
+              << std::right << std::setw(12) << "PRICE"
+              << std::setw(9)  << "CHANGE"
               << "  "
-              << std::left
-              << std::setw(7)  << "TYPE"
-              << std::setw(7)  << "VOL"
-              << "\n";
-    // Print divider using repeated UTF-8 '─' (U+2500)
-    std::cout << "  ";
-    for (int i = 0; i < 63; ++i) std::cout << "\u2500";
-    std::cout << "\n";
+              << std::left  << std::setw(7)  << "TYPE"
+              << std::setw(6)  << "VOL"
+              << "  TREND"
+              << Terminal::RESET << "\n";
+
+    // Divider
+    std::cout << "  " << Terminal::CYAN << Terminal::DIM;
+    for (int i = 0; i < 73; ++i) std::cout << "\u2500";
+    std::cout << Terminal::RESET << "\n";
 
     for (const auto& [sym, asset] : sorted) {
-        // Price change vs previous day
         const auto& hist = asset->getPriceHistory();
         double cur  = asset->getCurrentPrice();
         double prev = (hist.size() >= 2) ? *(hist.end() - 2) : cur;
@@ -101,10 +101,12 @@ void MarketEngine::listAssets() const {
         if (asset->getAssetType() == AssetType::CRYPTO) typeTag = "CRYPTO";
         if (asset->getAssetType() == AssetType::ETF)    typeTag = "ETF";
 
-        // Choose color based on daily change
-        const char* priceColor = (chg >= 0.0) ? "\033[92m" : "\033[91m";
-        const char* reset      = "\033[0m";
+        const char* priceColor = (chg >= 0.0) ? Terminal::BRIGHT_GREEN : Terminal::BRIGHT_RED;
         const char* arrow      = (chg >= 0.0) ? "\u25b2" : "\u25bc";
+
+        // Sparkline
+        std::string spark      = Terminal::printSparkline(hist, 8);
+        const char* sparkColor = Terminal::sparklineColor(hist);
 
         std::cout << "  "
                   << std::left  << std::setw(7)  << sym
@@ -114,11 +116,13 @@ void MarketEngine::listAssets() const {
                   << "  " << arrow << " "
                   << std::right << std::setw(5)  << std::fixed << std::setprecision(1)
                   << std::abs(pct) << "%"
-                  << reset
+                  << Terminal::RESET
                   << "  "
-                  << std::left  << std::setw(7)  << typeTag
-                  << std::right << std::setw(5)  << std::fixed << std::setprecision(3)
-                  << asset->calculateVolatility()
+                  << std::left << std::setw(7) << typeTag
+                  << std::right << std::setw(4) << std::fixed << std::setprecision(2)
+                  << asset->calculateVolatility() * 100.0 << "%"
+                  << "  "
+                  << sparkColor << spark << Terminal::RESET
                   << "\n";
     }
     std::cout << "\n";
@@ -198,9 +202,67 @@ void MarketEngine::stepDay() {
         applyNewsEvent();
     }
 
-    std::cout << "\n  \033[1m\033[36m\u25b8 Day " << currentDay
-              << " trading session complete.\033[0m  "
-              << assets.size() << " assets updated.\n";
+    // ── Daily summary: top-3 gainers and top-3 losers ─────────────────────
+    struct Move { std::string sym; double pct; };
+    std::vector<Move> movers;
+    movers.reserve(assets.size());
+
+    for (const auto& [sym, asset] : assets) {
+        const auto& hist = asset->getPriceHistory();
+        if (hist.size() < 2) continue;
+        double prev = *(hist.end() - 2);
+        double cur  = asset->getCurrentPrice();
+        double pct  = (prev > 0.0) ? (cur - prev) / prev * 100.0 : 0.0;
+        movers.push_back({sym, pct});
+    }
+
+    std::sort(movers.begin(), movers.end(),
+              [](const Move& a, const Move& b){ return a.pct > b.pct; });
+
+    // Header
+    std::cout << "\n  " << Terminal::BOLD << Terminal::BRIGHT_CYAN
+              << "\u25b8 Day " << currentDay << " trading session complete."
+              << Terminal::RESET << "  "
+              << Terminal::DIM << assets.size() << " assets updated."
+              << Terminal::RESET << "\n";
+
+    if (movers.size() >= 2) {
+        // Gainers (top 3)
+        std::cout << "\n  " << Terminal::BOLD << Terminal::BRIGHT_GREEN
+                  << "Top Gainers" << Terminal::RESET << "\n";
+        int shown = 0;
+        for (const auto& m : movers) {
+            if (m.pct < 0.0 || shown >= 3) break;
+            std::cout << "    " << Terminal::BRIGHT_GREEN
+                      << std::left  << std::setw(6) << m.sym
+                      << std::right << std::setw(7) << std::fixed << std::setprecision(2)
+                      << m.pct << "% \u25b2"
+                      << Terminal::RESET << "\n";
+            ++shown;
+        }
+        if (shown == 0) {
+            std::cout << "    " << Terminal::DIM << "No gainers today." << Terminal::RESET << "\n";
+        }
+
+        // Losers (bottom 3)
+        std::cout << "\n  " << Terminal::BOLD << Terminal::BRIGHT_RED
+                  << "Top Losers" << Terminal::RESET << "\n";
+        shown = 0;
+        for (int i = static_cast<int>(movers.size()) - 1; i >= 0 && shown < 3; --i) {
+            if (movers[static_cast<std::size_t>(i)].pct >= 0.0) break;
+            const auto& m = movers[static_cast<std::size_t>(i)];
+            std::cout << "    " << Terminal::BRIGHT_RED
+                      << std::left  << std::setw(6) << m.sym
+                      << std::right << std::setw(7) << std::fixed << std::setprecision(2)
+                      << m.pct << "% \u25bc"
+                      << Terminal::RESET << "\n";
+            ++shown;
+        }
+        if (shown == 0) {
+            std::cout << "    " << Terminal::DIM << "No losers today." << Terminal::RESET << "\n";
+        }
+    }
+    std::cout << "\n";
 }
 
 // ─────────────────────────────────────────────────────────────────────────

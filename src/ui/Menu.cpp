@@ -132,6 +132,39 @@ void Menu::run() {
 
     Terminal::clearScreen();
     Terminal::printHeader("GOODBYE");
+
+    // ── Session summary ────────────────────────────────────────────────────
+    auto exitUser = engine.getCurrentUser();
+    if (exitUser) {
+        const auto& portfolio = exitUser->getPortfolio();
+        const auto& costBasis = exitUser->getAvgCostBasis();
+        double holdingsVal = 0.0;
+        double holdingsCost = 0.0;
+        for (const auto& [sym, qty] : portfolio) {
+            auto asset = engine.getAsset(sym);
+            double price = asset ? asset->getCurrentPrice() : 0.0;
+            double avg   = costBasis.count(sym) ? costBasis.at(sym) : 0.0;
+            holdingsVal  += price * qty;
+            holdingsCost += avg   * qty;
+        }
+        double totalPnL  = holdingsVal - holdingsCost;
+        double netWorth  = holdingsVal + exitUser->getCashBalance();
+        const char* pnlCol = (totalPnL >= 0.0) ? Terminal::BRIGHT_GREEN : Terminal::BRIGHT_RED;
+
+        std::cout << "\n"
+                  << "  " << Terminal::DIM    << "Session:        " << Terminal::RESET
+                  << Terminal::BOLD  << exitUser->getUsername() << Terminal::RESET
+                  << "  " << Terminal::DIM << "(Day " << engine.getCurrentDay() << ")" << Terminal::RESET << "\n"
+                  << "  " << Terminal::DIM    << "Cash balance:   " << Terminal::RESET
+                  << Terminal::BRIGHT_GREEN   << fmtDollar(exitUser->getCashBalance()) << Terminal::RESET << "\n"
+                  << "  " << Terminal::DIM    << "Holdings value: " << Terminal::RESET
+                  << Terminal::BRIGHT_CYAN    << fmtDollar(holdingsVal) << Terminal::RESET << "\n"
+                  << "  " << Terminal::DIM    << "Total P&L:      " << Terminal::RESET
+                  << pnlCol << (totalPnL >= 0 ? "+" : "") << fmtDollar(totalPnL) << Terminal::RESET << "\n"
+                  << "  " << Terminal::BOLD   << "Net Worth:      "
+                  << Terminal::BRIGHT_YELLOW  << fmtDollar(netWorth) << Terminal::RESET << "\n";
+    }
+
     std::cout << "\n  " << Terminal::BRIGHT_CYAN
               << "Thank you for trading with Terminal Stock Exchange!"
               << Terminal::RESET << "\n\n";
@@ -326,6 +359,7 @@ void Menu::viewAsset(const std::string& symbol) {
         }
         Terminal::printHeader(asset->getName() + "  [" + symbol + "]");
 
+        // Asset metadata panel
         std::cout << "\n"
                   << "  " << Terminal::DIM    << "Type:    " << Terminal::RESET
                   << Terminal::BOLD << typeStr << Terminal::RESET << "\n"
@@ -341,6 +375,32 @@ void Menu::viewAsset(const std::string& symbol) {
                   << std::fixed << std::setprecision(2) << asset->getTradingFee() * 100.0 << "%\n"
                   << "  " << Terminal::DIM    << "History: " << Terminal::RESET
                   << hist.size() << " days\n";
+
+        // 52-period High / Low from available price history
+        if (!hist.empty()) {
+            double hiP = *std::max_element(hist.cbegin(), hist.cend());
+            double loP = *std::min_element(hist.cbegin(), hist.cend());
+            std::cout << "  " << Terminal::DIM << "52W H/L: " << Terminal::RESET
+                      << Terminal::BRIGHT_GREEN << fmtDollar(hiP) << Terminal::RESET
+                      << "  /  "
+                      << Terminal::BRIGHT_RED   << fmtDollar(loP) << Terminal::RESET << "\n";
+        }
+
+        // ETF basket disclosure
+        if (asset->getAssetType() == AssetType::ETF) {
+            auto etf = std::dynamic_pointer_cast<ETF>(asset);
+            if (etf && !etf->getBasketSymbols().empty()) {
+                std::cout << "  " << Terminal::DIM << "Basket:  " << Terminal::RESET
+                          << Terminal::DIM;
+                bool first = true;
+                for (const auto& s : etf->getBasketSymbols()) {
+                    if (!first) std::cout << " · ";
+                    std::cout << s;
+                    first = false;
+                }
+                std::cout << Terminal::RESET << "\n";
+            }
+        }
 
         // Check player holdings
         auto user   = engine.getCurrentUser();
@@ -663,6 +723,9 @@ void Menu::showAdminPanel() {
 // ─────────────────────────────────────────────────────────────────────────
 
 void Menu::handleLogin() {
+    // Show the splash only on the very first screen
+    Terminal::printSplash();
+
     while (true) {
         Terminal::clearScreen();
         Terminal::printHeader("WELCOME TO TERMINAL STOCK EXCHANGE");
