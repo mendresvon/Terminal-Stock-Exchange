@@ -23,28 +23,30 @@ void clearScreen() {
 void printSplash() {
     clearScreen();
 
-    // Outer box (64 chars wide)
+    // Outer box matching BOX_WIDTH (62 chars wide, inner is 60 chars)
+    const int inner = BOX_WIDTH - 2; // 60
+
     auto border = [&](const char* l, const char* r, int fill) {
         std::cout << BRIGHT_CYAN << BOLD << l;
         for (int i = 0; i < fill; ++i) std::cout << "\u2550";
         std::cout << r << RESET << "\n";
     };
     auto line = [&](const std::string& content) {
-        // content must be exactly 62 visible chars
+        // content must be exactly 60 visible chars
         std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET
                   << content
                   << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
     };
 
-    border("\u2554", "\u2557", 62);
-    line("                                                              ");
+    border("\u2554", "\u2557", inner);
+    line("                                                            ");
     // Row 1 of art
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
     std::cout << "  " << BRIGHT_CYAN << BOLD;
     std::cout << " _____ ____  _____ ";
     std::cout << RESET << "  ";
     std::cout << BRIGHT_YELLOW << BOLD << "TERMINAL STOCK EXCHANGE" << RESET;
-    std::cout << "   ";
+    std::cout << "              ";
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
 
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
@@ -52,7 +54,7 @@ void printSplash() {
     std::cout << "|_   _/ ___|| ____|";
     std::cout << RESET << "  ";
     std::cout << DIM << "Simulate. Trade. Conquer." << RESET;
-    std::cout << "      ";
+    std::cout << "            ";
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
 
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
@@ -60,7 +62,7 @@ void printSplash() {
     std::cout << "  | | \\___ \\|  _|  ";
     std::cout << RESET << "  ";
     std::cout << DIM << "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500" << RESET;
-    std::cout << "   ";
+    std::cout << "            ";
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
 
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
@@ -68,7 +70,7 @@ void printSplash() {
     std::cout << "  | | ___) || |___  ";
     std::cout << RESET << "  ";
     std::cout << GREEN << "v1.0" << RESET << "  \u00b7  " << DIM << "C++17" << RESET << "  \u00b7  " << DIM << "ANSI UI" << RESET;
-    std::cout << "       ";
+    std::cout << "          ";
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
 
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET;
@@ -76,11 +78,11 @@ void printSplash() {
     std::cout << "  |_| |____/|_____| ";
     std::cout << RESET << "  ";
     std::cout << DIM << "Built with OOP \u00b7 STL \u00b7 File I/O" << RESET;
-    std::cout << "         ";
+    std::cout << "     ";
     std::cout << BRIGHT_CYAN << BOLD << "\u2551" << RESET << "\n";
 
-    line("                                                              ");
-    border("\u255a", "\u255d", 62);
+    line("                                                            ");
+    border("\u255a", "\u255d", inner);
     std::cout << "\n";
 }
 
