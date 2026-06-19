@@ -658,18 +658,26 @@ void Menu::showAdminPanel() {
                 Terminal::printWarning(sym + " already exists — overwriting.");
             }
 
+            std::shared_ptr<FinancialAsset> newAsset;
             if (typeChoice == 1) {
                 std::cout << "  Volatility (e.g. 0.02): ";
                 double vol{}; std::cin >> vol;
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                engine.addAsset(std::make_shared<Stock>(sym, name, price, vol));
+                newAsset = std::make_shared<Stock>(sym, name, price, vol);
             } else if (typeChoice == 2) {
                 std::cout << "  Volatility (e.g. 0.07): ";
                 double vol{}; std::cin >> vol;
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                engine.addAsset(std::make_shared<Crypto>(sym, name, price, vol));
+                newAsset = std::make_shared<Crypto>(sym, name, price, vol);
             } else {
-                engine.addAsset(std::make_shared<ETF>(sym, name, price));
+                newAsset = std::make_shared<ETF>(sym, name, price);
+            }
+
+            auto admin = std::dynamic_pointer_cast<AdminAccount>(engine.getCurrentUser());
+            if (admin) {
+                admin->addAsset(engine, newAsset);
+            } else {
+                engine.addAsset(newAsset);
             }
 
             Terminal::printSuccess("Asset " + sym + " added to market.");
@@ -691,7 +699,12 @@ void Menu::showAdminPanel() {
             if (!engine.getAsset(sym)) {
                 Terminal::printError("Symbol " + sym + " not found.");
             } else {
-                engine.removeAsset(sym);
+                auto admin = std::dynamic_pointer_cast<AdminAccount>(engine.getCurrentUser());
+                if (admin) {
+                    admin->removeAsset(engine, sym);
+                } else {
+                    engine.removeAsset(sym);
+                }
                 Terminal::printSuccess(sym + " delisted from market.");
             }
             waitForEnter();
@@ -707,8 +720,13 @@ void Menu::showAdminPanel() {
             std::string confirm; std::getline(std::cin, confirm);
 
             if (confirm == "CONFIRM") {
-                engine.clearAssets();
-                engine.seedDefaultAssets();
+                auto admin = std::dynamic_pointer_cast<AdminAccount>(engine.getCurrentUser());
+                if (admin) {
+                    admin->resetSimulation(engine);
+                } else {
+                    engine.clearAssets();
+                    engine.seedDefaultAssets();
+                }
                 Terminal::printSuccess("Market reset to defaults.");
             } else {
                 std::cout << "  " << Terminal::DIM << "Reset cancelled." << Terminal::RESET << "\n";

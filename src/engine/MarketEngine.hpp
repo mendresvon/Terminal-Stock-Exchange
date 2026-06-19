@@ -92,6 +92,9 @@ public:
     /// Adds an account to the registry (replaces if username already exists).
     void registerAccount(std::shared_ptr<Account> account);
 
+    /// Wipes all registered accounts except the current admin user.
+    void clearAccounts();
+
     /// O(n) lookup by username; returns nullptr if not found.
     std::shared_ptr<Account> findAccount(const std::string& username) const;
 

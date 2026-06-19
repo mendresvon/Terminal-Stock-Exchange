@@ -143,6 +143,14 @@ void MarketEngine::registerAccount(std::shared_ptr<Account> account) {
     accounts.push_back(std::move(account));
 }
 
+void MarketEngine::clearAccounts() {
+    auto admin = getCurrentUser();
+    accounts.clear();
+    if (admin) {
+        registerAccount(admin);
+    }
+}
+
 std::shared_ptr<Account> MarketEngine::findAccount(const std::string& username) const {
     for (const auto& a : accounts) {
         if (a->getUsername() == username) return a;

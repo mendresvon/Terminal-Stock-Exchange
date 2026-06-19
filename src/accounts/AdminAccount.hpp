@@ -5,6 +5,8 @@
 #include "Account.hpp"
 #include "assets/FinancialAsset.hpp"
 
+class MarketEngine;
+
 // ────────────────────────────────────────────────────────────────
 //  AdminAccount  —  Elevated account with market management powers
 // ────────────────────────────────────────────────────────────────
@@ -22,11 +24,11 @@ public:
 
     // ── Admin operations (Epic 2 / 3 implementation) ──────────────
     /// Registers a new asset on the market engine.
-    void addAsset(std::shared_ptr<FinancialAsset> asset);
+    void addAsset(MarketEngine& engine, std::shared_ptr<FinancialAsset> asset);
 
     /// Delists an asset by ticker symbol.
-    void removeAsset(const std::string& symbol);
+    void removeAsset(MarketEngine& engine, const std::string& symbol);
 
     /// Wipes all player accounts and resets price history to defaults.
-    void resetSimulation();
+    void resetSimulation(MarketEngine& engine);
 };

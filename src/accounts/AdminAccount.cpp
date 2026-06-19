@@ -1,5 +1,7 @@
 #include "AdminAccount.hpp"
+#include "engine/MarketEngine.hpp"
 #include <iostream>
+#include <filesystem>
 
 AdminAccount::AdminAccount(const std::string& username, const std::string& password)
     : Account(username, password, 0.0) // Admins hold no trading cash
@@ -13,17 +15,26 @@ std::string AdminAccount::getAccountType() const {
     return "ADMIN";
 }
 
-void AdminAccount::addAsset(std::shared_ptr<FinancialAsset> asset) {
-    // TODO: Epic 2 — delegate to MarketEngine reference
-    std::cout << "  [STUB] Admin: add asset " << asset->getSymbol() << "\n";
+void AdminAccount::addAsset(MarketEngine& engine, std::shared_ptr<FinancialAsset> asset) {
+    engine.addAsset(std::move(asset));
 }
 
-void AdminAccount::removeAsset(const std::string& symbol) {
-    // TODO: Epic 2 — delegate to MarketEngine reference
-    std::cout << "  [STUB] Admin: remove asset " << symbol << "\n";
+void AdminAccount::removeAsset(MarketEngine& engine, const std::string& symbol) {
+    engine.removeAsset(symbol);
 }
 
-void AdminAccount::resetSimulation() {
-    // TODO: Epic 3 — wipe data/ files, re-seed default assets
-    std::cout << "  [STUB] Admin: reset simulation\n";
+void AdminAccount::resetSimulation(MarketEngine& engine) {
+    engine.clearAssets();
+    engine.seedDefaultAssets();
+    engine.clearAccounts();
+    engine.setCurrentDay(1);
+
+    // Wipe physical persistent files
+    std::error_code ec;
+    std::filesystem::remove("data/trade_logs.txt", ec);
+    std::filesystem::remove("data/market_data.txt", ec);
+    std::filesystem::remove("data/accounts.txt", ec);
+
+    // Save the newly reset default state
+    engine.save();
 }
