@@ -1,6 +1,6 @@
 # 開發規格說明與迭代流程 / Development Specification & Iteration History
 
-> **Terminal Stock Exchange (TSE)** — C++17 互動式終端股票交易模擬系統
+> **Terminal Stock Exchange (TSE)**, C++17 互動式終端股票交易模擬系統
 
 ---
 
@@ -68,7 +68,7 @@
 | 事件對象 | 隨機選取一個已上市資產 |
 | 事件方向 | 以 50% 機率決定正面或負面 |
 
-**正面新聞模板（8 種）：** 例如「季度財報大幅超越預期 — 分析師升評至買入！」  
+**正面新聞模板（8 種）：** 例如「季度財報大幅超越預期, 分析師升評至買入！」
 **負面新聞模板（8 種）：** 例如「CEO 突然辭職、爆發會計醜聞！」
 
 ---
@@ -102,9 +102,9 @@
 |------|------|
 | 初始資金 | $10,000 USD（`PlayerTrader` 預設值） |
 | 密碼儲存 | `std::hash<std::string>` 雜湊後以字串儲存 |
-| 投資組合 | `std::unordered_map<string, int>` — 代號對應持倉數量 |
-| 平均成本 | `std::unordered_map<string, double>` — 代號對應加權平均成本 |
-| 交易歷史 | `std::vector<TransactionRecord>` — ISO-8601 時間戳記 |
+| 投資組合 | `std::unordered_map<string, int>`: 代號對應持倉數量 |
+| 平均成本 | `std::unordered_map<string, double>`: 代號對應加權平均成本 |
+| 交易歷史 | `std::vector<TransactionRecord>`: ISO-8601 時間戳記 |
 | 預設管理員 | 帳號：`admin` / 密碼：`admin`（首次啟動自動建立） |
 
 ---
@@ -138,7 +138,7 @@ ADMIN|<帳號>|<密碼雜湊>|<現金餘額>||
 
 ---
 
-### Epic 1 — 核心系統建構（Core Systems）
+### Epic 1: 核心系統建構（Core Systems）
 
 **目標：** 建立所有 OOP 類別架構，不含實際業務邏輯。
 
@@ -156,7 +156,7 @@ ADMIN|<帳號>|<密碼雜湊>|<現金餘額>||
 
 ---
 
-### Epic 2 — 市場引擎與交易系統（Market Engine & Trading）
+### Epic 2: 市場引擎與交易系統（Market Engine & Trading）
 
 **目標：** 實作隨機漫步價格引擎、新聞事件系統、玩家買賣交易邏輯，以及基本終端機選單。
 
@@ -173,7 +173,7 @@ ADMIN|<帳號>|<密碼雜湊>|<現金餘額>||
 
 ---
 
-### Epic 3 — 檔案 I/O 與全狀態持久化（File I/O & Persistence）
+### Epic 3: 檔案 I/O 與全狀態持久化（File I/O & Persistence）
 
 **目標：** 實作完整的儲存/載入功能，使所有遊戲進度能在重啟後還原。
 
@@ -191,7 +191,7 @@ ADMIN|<帳號>|<密碼雜湊>|<現金餘額>||
 
 ---
 
-### Epic 4 — 視覺美化與使用者體驗打磨（Visual Polish & UX）
+### Epic 4: 視覺美化與使用者體驗打磨（Visual Polish & UX）
 
 **目標：** 大幅提升終端機介面的視覺品質，實作所有剩餘的 UI 功能。
 
@@ -214,7 +214,7 @@ ADMIN|<帳號>|<密碼雜湊>|<現金餘額>||
 
 ```mermaid
 gantt
-    title Terminal Stock Exchange — 開發迭代時序
+    title Terminal Stock Exchange, 開發迭代時序
     dateFormat  YYYY-MM-DD
     section Epic 1 核心系統
     OOP 類別架構設計          :done, e1a, 2026-06-17, 1d
@@ -275,7 +275,7 @@ Each call to `MarketEngine::stepDay()` updates every asset price using the follo
 ```
 new_price = current_price × (1 + r)
 
-where r ~ N(0, σ)  — sampled from a normal distribution with mean 0 and std-dev σ
+where r ~ N(0, σ) , sampled from a normal distribution with mean 0 and std-dev σ
 and   σ = asset.calculateVolatility()  (varies by asset type)
 ```
 
@@ -296,8 +296,8 @@ and   σ = asset.calculateVolatility()  (varies by asset type)
 | Target selection | One randomly chosen listed asset |
 | Direction | 50% positive / 50% negative |
 
-**8 positive headline templates** — e.g. *"BEATS quarterly earnings by 20% — Analysts upgrade to BUY!"*  
-**8 negative headline templates** — e.g. *"CEO resigns unexpectedly amid accounting scandal!"*
+**8 positive headline templates**, e.g. *"BEATS quarterly earnings by 20%, Analysts upgrade to BUY!"*
+**8 negative headline templates**, e.g. *"CEO resigns unexpectedly amid accounting scandal!"*
 
 ---
 
@@ -328,9 +328,9 @@ credited_to       = account.cashBalance
 |----------|--------------|
 | Starting cash | $10,000 USD (`PlayerTrader` default) |
 | Password storage | `std::hash<std::string>` stored as decimal string |
-| Portfolio | `std::unordered_map<string, int>` — symbol → quantity held |
-| Cost basis | `std::unordered_map<string, double>` — symbol → weighted-avg cost |
-| Trade history | `std::vector<TransactionRecord>` — ISO-8601 timestamps |
+| Portfolio | `std::unordered_map<string, int>`: symbol → quantity held |
+| Cost basis | `std::unordered_map<string, double>`: symbol → weighted-avg cost |
+| Trade history | `std::vector<TransactionRecord>`: ISO-8601 timestamps |
 | Default admin | username: `admin` / password: `admin` (auto-seeded on first run) |
 
 ---
@@ -364,9 +364,9 @@ This project was built using an **Epic-driven iterative development** model acro
 
 ---
 
-### Epic 1 — Core Systems
+### Epic 1: Core Systems
 
-**Goal:** Establish the complete OOP class hierarchy with correct inheritance chains. No business logic yet — pure structural scaffolding.
+**Goal:** Establish the complete OOP class hierarchy with correct inheritance chains. No business logic yet, pure structural scaffolding.
 
 **Completed:**
 - `Types.hpp`: `AssetType` enum, `TransactionRecord` struct, `nowIso8601()` helper
@@ -377,12 +377,12 @@ This project was built using an **Epic-driven iterative development** model acro
 - `MarketEngine` (skeleton): asset registry via `unordered_map`; `addAsset()`, `getAsset()`, `listAssets()`
 - `CMakeLists.txt`: C++17 standard, `-Wall -Wextra -O2`
 
-**Files added:**  
+**Files added:**
 `Types.hpp`, `FinancialAsset.hpp`, `Stock.hpp/.cpp`, `Crypto.hpp/.cpp`, `ETF.hpp/.cpp`, `Account.hpp`, `PlayerTrader.hpp/.cpp`, `AdminAccount.hpp/.cpp`, `MarketEngine.hpp/.cpp` (skeleton), `CMakeLists.txt`
 
 ---
 
-### Epic 2 — Market Engine & Trading System
+### Epic 2: Market Engine & Trading System
 
 **Goal:** Bring the simulation to life with a working price engine, news events, and real buy/sell trading.
 
@@ -394,14 +394,14 @@ This project was built using an **Epic-driven iterative development** model acro
 - `MarketEngine::seedDefaultAssets()`: creates all 10 default assets and the default admin account
 - `Terminal` namespace and `Menu` class (basic interactive loop): login flow, market view, trade menu stub
 
-**Files modified/added:**  
+**Files modified/added:**
 `MarketEngine.hpp/.cpp` (major expansion), `PlayerTrader.cpp` (trading logic), `Terminal.hpp/.cpp` (initial), `Menu.hpp/.cpp` (initial)
 
 ---
 
-### Epic 3 — File I/O & Full State Persistence
+### Epic 3: File I/O & Full State Persistence
 
-**Goal:** Make the simulation stateful across sessions — save everything, restore everything.
+**Goal:** Make the simulation stateful across sessions, save everything, restore everything.
 
 **Completed:**
 - `FileManager` (static-only class): `saveMarket()`, `loadMarket()`, `saveAccounts()`, `loadAccounts()`, `appendTradeLog()`
@@ -414,12 +414,12 @@ This project was built using an **Epic-driven iterative development** model acro
 - `Menu::handleLogout()`: saves state and returns to login screen (does not quit)
 - `Menu::showTradeHistory()`: renders the in-memory trade history as a formatted table
 
-**Files added/modified:**  
+**Files added/modified:**
 `FileManager.hpp/.cpp` (new), `MarketEngine.cpp` (save/load), `PlayerTrader.cpp` (trade log), `main.cpp` (startup sequence), `Menu.cpp` (login/logout/register/history)
 
 ---
 
-### Epic 4 — Visual Polish & UX
+### Epic 4: Visual Polish & UX
 
 **Goal:** Elevate the terminal UI from functional to visually polished. Implement all remaining display features.
 
@@ -433,7 +433,7 @@ This project was built using an **Epic-driven iterative development** model acro
 - Goodbye session summary: final P&L and net worth printed on exit
 - Admin panel: add/remove/list assets; reset simulation option
 
-**Files modified:**  
+**Files modified:**
 `Terminal.hpp/.cpp` (comprehensive expansion), `Menu.cpp` (all remaining UI sub-menus)
 
 ---
@@ -442,7 +442,7 @@ This project was built using an **Epic-driven iterative development** model acro
 
 ```mermaid
 gantt
-    title Terminal Stock Exchange — Development Iteration Timeline
+    title Terminal Stock Exchange, Development Iteration Timeline
     dateFormat  YYYY-MM-DD
     section Epic 1 Core Systems
     OOP class hierarchy design     :done, e1a, 2026-06-17, 1d

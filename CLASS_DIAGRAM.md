@@ -1,6 +1,6 @@
 # 類別關係圖 / Class Relationship Diagram
 
-> **Terminal Stock Exchange (TSE)** — Complete UML class diagram showing all classes, their members, and their relationships.
+> **Terminal Stock Exchange (TSE)**, Complete UML class diagram showing all classes, their members, and their relationships.
 
 ---
 
@@ -245,10 +245,10 @@ classDiagram
 | Symbol | Meaning |
 |--------|---------|
 | `<\|--` | Inheritance (IS-A) |
-| `o--` | Aggregation — `MarketEngine` owns assets/accounts via `shared_ptr`; objects can exist independently |
-| `*--` | Composition — `TransactionRecord`s live inside an `Account` and are destroyed with it |
-| `-->` | Association — one class holds a reference or pointer to another |
-| `..>` | Dependency — one class uses another (e.g. passes it as a parameter) |
+| `o--` | Aggregation: `MarketEngine` owns assets/accounts via `shared_ptr`; objects can exist independently |
+| `*--` | Composition: `TransactionRecord`s live inside an `Account` and are destroyed with it |
+| `-->` | Association: one class holds a reference or pointer to another |
+| `..>` | Dependency: one class uses another (e.g. passes it as a parameter) |
 
 ---
 
@@ -257,7 +257,7 @@ classDiagram
 ### Asset Hierarchy
 
 ```
-FinancialAsset  (abstract — pure virtual: calculateVolatility(), getTradingFee())
+FinancialAsset  (abstract, pure virtual: calculateVolatility(), getTradingFee())
 ├── Stock       vol ±2%/day  │ fee 0.1%  │ dividendYield
 ├── Crypto      vol ±7%/day  │ fee 0.5%  │ tradesAroundClock = true
 └── ETF         vol ±0.8%/day│ fee 0.03% │ basketSymbols[]
@@ -266,7 +266,7 @@ FinancialAsset  (abstract — pure virtual: calculateVolatility(), getTradingFee
 ### Account Hierarchy
 
 ```
-Account  (abstract — pure virtual: authenticate(), getAccountType())
+Account  (abstract, pure virtual: authenticate(), getAccountType())
 ├── PlayerTrader   buy() / sell()  │ weighted-avg cost basis │ $10,000 start
 └── AdminAccount   addAsset() / removeAsset() / resetSimulation()
 ```

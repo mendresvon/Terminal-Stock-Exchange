@@ -347,11 +347,11 @@ Terminal-Stock-Exchange/
 
 ## Technical Notes
 
-- **Password Storage**: Passwords are stored as `std::hash<std::string>` hashes. This is sufficient for a simulation; a production system would use bcrypt or Argon2.
-- **File Format**: All data files use pipe-delimited (`|`) plain text for easy inspection and debugging.
-- **No External Dependencies**: Pure C++17 STL: no Boost, ncurses, OpenSSL, or any third-party libraries.
-- **Compiler**: Tested on Apple Clang 21.0.0 (arm64-apple-darwin).
-- **Concurrency**: Single-threaded; the simulation is fully deterministic except for seeded PRNG.
+- Password Storage: Passwords are stored as `std::hash<std::string>` hashes. This is sufficient for a simulation; a production system would use bcrypt or Argon2.
+- File Format: All data files use pipe-delimited (`|`) plain text for easy inspection and debugging.
+- No External Dependencies: Pure C++17 STL: no Boost, ncurses, OpenSSL, or any third-party libraries.
+- Compiler: Tested on Apple Clang 21.0.0 (arm64-apple-darwin).
+- Concurrency: Single-threaded; the simulation is fully deterministic except for seeded PRNG.
 
 ---
 

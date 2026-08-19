@@ -1,6 +1,6 @@
 # 系統架構圖 / System Architecture Diagram
 
-> **Terminal Stock Exchange (TSE)** — C++17 互動式終端股票交易模擬系統
+> **Terminal Stock Exchange (TSE)**, C++17 互動式終端股票交易模擬系統
 
 This diagram shows how the five architectural layers of the TSE interact with each other at runtime.
 
@@ -10,7 +10,7 @@ This diagram shows how the five architectural layers of the TSE interact with ea
 
 ```mermaid
 graph TD
-    subgraph Entry["🚀 Entry Point — main.cpp"]
+    subgraph Entry["🚀 Entry Point, main.cpp"]
         MAIN["main.cpp<br/>─────────────────────────<br/>1. engine.load()  → restore state<br/>2. seedDefaultAssets() on first run<br/>3. menu.run()  → hand off to UI"]
     end
 
@@ -88,10 +88,10 @@ graph TD
 
 ## Key Design Decisions
 
-- **`shared_ptr` throughout** — assets and accounts are heap-allocated and owned by `MarketEngine` via `shared_ptr`; other components hold non-owning references.
-- **Static-only `FileManager`** — no instance needed; all methods are `static`, preventing accidental state in the I/O layer.
-- **`namespace Terminal`** — renders the UI layer as a collection of stateless free functions rather than a class, keeping it lightweight.
-- **`mt19937` PRNG** — seeded from `std::random_device` on `MarketEngine` construction for reproducible-but-varied daily price moves.
+- `shared_ptr` throughout: assets and accounts are heap-allocated and owned by `MarketEngine` via `shared_ptr`; other components hold non-owning references.
+- Static-only `FileManager`: no instance needed; all methods are `static`, preventing accidental state in the I/O layer.
+- `namespace Terminal`: renders the UI layer as a collection of stateless free functions rather than a class, keeping it lightweight.
+- `mt19937` PRNG: seeded from `std::random_device` on `MarketEngine` construction for reproducible-but-varied daily price moves.
 
 ---
 

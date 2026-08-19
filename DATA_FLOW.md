@@ -1,6 +1,6 @@
 # 資料流程圖 / Data Flow Diagram
 
-> **Terminal Stock Exchange (TSE)** — Sequence diagrams showing how data moves through the system for the three core runtime flows.
+> **Terminal Stock Exchange (TSE)**, Sequence diagrams showing how data moves through the system for the three core runtime flows.
 
 ---
 
