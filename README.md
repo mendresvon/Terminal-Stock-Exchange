@@ -1,4 +1,4 @@
-# 終端股票交易所 (TSE) — Terminal Stock Exchange
+# 終端股票交易所 (TSE): Terminal Stock Exchange
 
 > 一個以 C++17 實作的互動式終端股票交易所模擬系統
 
@@ -31,7 +31,7 @@
 | 功能 | 描述 |
 |------|------|
 | 🏦 多帳戶系統 | 支援普通交易者 (`PlayerTrader`) 與管理員 (`AdminAccount`) 兩種帳戶類型 |
-| 📈 三種資產類型 | 股票 (Stock)、加密貨幣 (Crypto)、ETF — 各有不同波動率與手續費 |
+| 📈 三種資產類型 | 股票 (Stock)、加密貨幣 (Crypto)、ETF: 各有不同波動率與手續費 |
 | 🎲 隨機市場引擎 | 每日以常態分布隨機漫步更新資產價格，偶發新聞事件觸發大漲/大跌 |
 | 💼 投資組合追蹤 | 即時顯示持倉數量、加權平均成本、損益 (P&L) |
 | 📊 價格走勢圖 | 30 天歷史 ASCII 折線圖 + UTF-8 迷你走勢圖 (▁▂▃▄▅▆▇█) |
@@ -153,14 +153,14 @@ Terminal-Stock-Exchange/
 
 ## Project Overview
 
-**Terminal Stock Exchange (TSE)** is a fully interactive stock trading simulation that runs entirely in your terminal. Built with pure **C++17** and zero external dependencies, it demonstrates core Object-Oriented Programming principles — inheritance, polymorphism, encapsulation, and abstraction — alongside practical STL usage and file-based persistence.
+**Terminal Stock Exchange (TSE)** is a fully interactive stock trading simulation that runs entirely in your terminal. Built with pure **C++17** and zero external dependencies, it demonstrates core Object-Oriented Programming principles such as inheritance, polymorphism, encapsulation, and abstraction, alongside practical STL usage and file-based persistence.
 
 ### Key Features
 
 | Feature | Description |
 |---------|-------------|
 | 🏦 Multi-Account System | Supports `PlayerTrader` and `AdminAccount` account types via inheritance |
-| 📈 Three Asset Types | Stocks, Cryptocurrencies, and ETFs — each with distinct volatility and fee rates |
+| 📈 Three Asset Types | Stocks, Cryptocurrencies, and ETFs: each with distinct volatility and fee rates |
 | 🎲 Random Market Engine | Daily Gaussian random-walk price updates with probabilistic news events |
 | 💼 Portfolio Tracking | Real-time P&L with weighted-average cost basis per position |
 | 📊 Price Charts | 30-day ASCII line chart + UTF-8 sparklines (▁▂▃▄▅▆▇█) |
@@ -214,42 +214,42 @@ Deletes all saved accounts, portfolios, and price history. The app re-seeds 10 d
 The splash screen appears. You will be prompted to **Login** or **Register**.
 
 ### 2. Create an Account
-- Select `2` — Register
+- Select `2`: Register
 - Choose a username and password
 - You start with **$10,000 USD** in cash
 - You are automatically logged in after registration
 
 ### 3. View the Market
-- Select `1` — View Market
+- Select `1`: View Market
 - See all 10 listed assets (Stocks, ETFs, Crypto) with live sparkline trends and current prices
 
 ### 4. Trade Assets
-- Select `3` — Trade
+- Select `3`: Trade
 - Enter a ticker symbol (e.g. `AAPL`, `BTC`, `SPY`)
 - View the asset detail panel with full price chart
 - Choose **Buy** or **Sell**, enter a quantity
 - Transaction fees are applied automatically
 
 ### 5. Advance Trading Days
-- Select `4` — Next Trading Day
+- Select `4`: Next Trading Day
 - Prices update via random walk, a news event may fire
 - View the daily gainers and losers summary
 
 ### 6. Check Your Portfolio
-- Select `2` — My Portfolio
+- Select `2`: My Portfolio
 - Displays quantity held, average cost, current value, and colour-coded P&L
 
 ### 7. View Trade History
-- Select `7` — Trade History
+- Select `7`: Trade History
 - Timestamped log of every buy/sell you have executed
 
 ### 8. Admin Mode
 - Log in as `admin` / `admin`
-- Access option `5` — Admin Panel
+- Access option `5`: Admin Panel
 - Add or remove assets from the exchange
 
 ### 9. Save & Quit
-- Select `0` — Save & Quit
+- Select `0`: Save & Quit
 - All data is written to `data/`; your state is fully restored on the next run
 
 ---
@@ -323,7 +323,7 @@ Terminal-Stock-Exchange/
 | **Inheritance** | `FinancialAsset` → `Stock` / `Crypto` / `ETF`; `Account` → `PlayerTrader` / `AdminAccount` |
 | **Polymorphism** | `calculateVolatility()` and `getTradingFee()` are pure-virtual; each subclass overrides with its own rate |
 | **Encapsulation** | All data members are `private`/`protected`; access is controlled via public getters/setters |
-| **Abstraction** | Both `FinancialAsset` and `Account` are abstract classes — they cannot be instantiated directly |
+| **Abstraction** | Both `FinancialAsset` and `Account` are abstract classes: they cannot be instantiated directly |
 | **STL Usage** | `std::deque`, `std::unordered_map`, `std::vector`, `std::shared_ptr`, `std::mt19937` |
 
 ---
@@ -349,7 +349,7 @@ Terminal-Stock-Exchange/
 
 - **Password Storage**: Passwords are stored as `std::hash<std::string>` hashes. This is sufficient for a simulation; a production system would use bcrypt or Argon2.
 - **File Format**: All data files use pipe-delimited (`|`) plain text for easy inspection and debugging.
-- **No External Dependencies**: Pure C++17 STL — no Boost, ncurses, OpenSSL, or any third-party libraries.
+- **No External Dependencies**: Pure C++17 STL: no Boost, ncurses, OpenSSL, or any third-party libraries.
 - **Compiler**: Tested on Apple Clang 21.0.0 (arm64-apple-darwin).
 - **Concurrency**: Single-threaded; the simulation is fully deterministic except for seeded PRNG.
 
